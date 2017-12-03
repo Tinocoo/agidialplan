@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "bituser";
-$password = "fqdwsear";
-$database = "bitnorte";
+$username = "userdb";
+$password = "passdb";
+$database = "namedn";
 
 // Create connection
 $connect = mysqli_connect($servername, $username, $password, $database);
