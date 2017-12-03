@@ -1,0 +1,86 @@
+context ChamadaLocal {
+        _[2-5]XXXXXXX => &discagem(${EXTEN},"local");
+};
+
+context ChamadaLDN {
+	_0XX[2-5]XXXXXXX => &discagem(${EXTEN},"ldn");
+};
+
+context CelularLocal {
+	_9[6-9]XXXXXXX => &discagem(${EXTEN},"vc1");
+};
+
+context CelularLDN {
+	_0XX9[6-9]XXXXXXX => &discagem(${EXTEN},"vc2");
+};
+
+context Tridigito {
+	_1XX => &discagem(${EXTEN},"local");
+};
+
+context Interno {
+
+};
+
+context Invalido {
+        _X. => {
+                NoOp("Numero Invalido!");
+                Busy(3);
+                Hangup();
+        };
+};
+
+context DialOut{
+	_X. => {
+                if (${EXTEN} > 0) {
+			NoOp("Realizando chamada...");
+                        Dial(SIP/${TRUNK}/${EXTEN},,Tr);
+                        Hangup();
+                }else {
+			Busy(3);
+                        Hangup();
+                }
+        }
+}
+
+macro discagem(DIALNUMBER,TIPO){
+	NoOp("Ligação ${TIPO} usando PSTN");
+	Set(CHANNEL(language)=pt_BR);
+        Set(CLIENTE=${CALLERID(num)});
+        AGI(dialPlan.php,${CLIENTE},${TIPO},${DIALNUMBER});
+        if ("${MROTA}" = "1") {
+        	NoOp("Permissao: ${PERMISSAO}");
+                if ("${PERMISSAO}" = "1") {
+                	NoOp("Cliente autorizado!");
+			NoOp("Tronco de Saida: ${TRUNK}");
+			&MGravaRamalSaida(${CLIENTE},${DIALNUMBER});
+                        jump ${DIALNUMBER}@DialOut;
+                }else{
+                        NoOp("Sem permissao para esse tipo de chamada.");
+                        Playback(error-number);
+                        Busy(3);
+                        Hangup();
+                }
+	}else{
+        	NoOp("Sem marcacao de rota");
+                Playback(error-number);
+                Busy(3);
+                Hangup();
+	}
+	return;
+}
+
+macro MGravaRamalSaida(CLIENTE, DIALNUMBER) {
+        if ("${RECOUT}" = "1") {
+		NoOp("Ramal a ser gravado - ${CLIENTE}");
+                Set(DateDir=${STRFTIME(${EPOCH},,%d-%m-%Y)});
+                Set(Calltime=${STRFTIME(${EPOCH},,%d%m%C%y-%H%M)});
+                System(/bin/mkdir -p /var/spool/asterisk/monitor/${GROTA}/saida/${DateDir});
+                Set(__MONITOR_FILENAME=${group}/saida/${DateDir}/${CLIENTE}-${DIALNUMBER}-${Calltime}-${UNIQUEID});
+                MixMonitor(${MONITOR_FILENAME}.WAV,aW(4));
+		Set(AUDIOHOOK_INHERIT(MixMonitor)=yes);
+        }else{
+		NoOp("Ramal sem gravação.");
+	}
+        return;
+};
