@@ -1,21 +1,21 @@
 context ChamadaLocal {
-        _[2-5]XXXXXXX => &discagem(${EXTEN},"local");
+        _[2-5]XXXXXXX => &MDiscagem(${EXTEN},"local");
 };
 
 context ChamadaLDN {
-	_0XX[2-5]XXXXXXX => &discagem(${EXTEN},"ldn");
+	_0XX[2-5]XXXXXXX => &MDiscagem(${EXTEN},"ldn");
 };
 
 context CelularLocal {
-	_9[6-9]XXXXXXX => &discagem(${EXTEN},"vc1");
+	_9[6-9]XXXXXXX => &MDiscagem(${EXTEN},"vc1");
 };
 
 context CelularLDN {
-	_0XX9[6-9]XXXXXXX => &discagem(${EXTEN},"vc2");
+	_0XX9[6-9]XXXXXXX => &MDiscagem(${EXTEN},"vc2");
 };
 
 context Tridigito {
-	_1XX => &discagem(${EXTEN},"local");
+	_1XX => &MDiscagem(${EXTEN},"local");
 };
 
 context Interno {
